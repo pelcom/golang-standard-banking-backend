@@ -1,0 +1,292 @@
+openapi: 3.0.3
+info:
+  title: Banking Platform API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /auth/register:
+    post:
+      summary: User registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Registered
+  /auth/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Authenticated
+  /auth/me:
+    get:
+      summary: Current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+  /accounts:
+    get:
+      summary: List accounts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Accounts
+  /accounts/{id}/balance:
+    get:
+      summary: Account balance
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Balance
+  /transactions/transfer:
+    post:
+      summary: Transfer between users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+      responses:
+        "201":
+          description: Transfer created
+  /transactions/exchange:
+    post:
+      summary: Exchange currency
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeRequest"
+      responses:
+        "201":
+          description: Exchange created
+  /transactions:
+    get:
+      summary: List transactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [transfer, exchange]
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transactions
+  /users/username/{username}:
+    get:
+      summary: Get user by username
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User
+  /users/email/{email}:
+    get:
+      summary: Get user by email
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User
+  /admin/exchange-rate:
+    post:
+      summary: Set exchange rate
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeRateRequest"
+      responses:
+        "201":
+          description: Created
+  /admin/users:
+    get:
+      summary: List users and balances
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Users
+  /admin/transactions:
+    get:
+      summary: List all transactions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Transactions
+  /admin/promote:
+    post:
+      summary: Promote user to admin
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromoteRequest"
+      responses:
+        "201":
+          description: Promoted
+  /admin/roles/grant:
+    post:
+      summary: Grant admin role
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantRoleRequest"
+      responses:
+        "201":
+          description: Role granted
+  /admin/audit:
+    get:
+      summary: Audit logs
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Audit logs
+  /admin/reconcile:
+    get:
+      summary: Reconcile balances
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reconciliation
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    TransferRequest:
+      type: object
+      required: [from_account_id, amount, confirm]
+      properties:
+        from_account_id:
+          type: string
+        to_account_id:
+          type: string
+        to_username:
+          type: string
+        to_email:
+          type: string
+        amount:
+          type: string
+        confirm:
+          type: boolean
+        client_request_id:
+          type: string
+    ExchangeRequest:
+      type: object
+      required: [from_account_id, to_account_id, amount, confirm]
+      properties:
+        from_account_id:
+          type: string
+        to_account_id:
+          type: string
+        amount:
+          type: string
+        confirm:
+          type: boolean
+        client_request_id:
+          type: string
+    ExchangeRateRequest:
+      type: object
+      required: [quote_currency, rate]
+      properties:
+        quote_currency:
+          type: string
+        rate:
+          type: string
+    PromoteRequest:
+      type: object
+      required: [identifier]
+      properties:
+        identifier:
+          type: string
+    GrantRoleRequest:
+      type: object
+      required: [admin_user_id, role]
+      properties:
+        admin_user_id:
+          type: string
+        role:
+          type: string
